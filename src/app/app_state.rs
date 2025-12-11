@@ -3,20 +3,28 @@ pub struct AppState {
     pub editor: EditorState,
 }
 
-pub struct EditorSettings {
-    pub font_size: usize,
-    pub theme: Theme,
-    pub wrap: bool,
-    pub indent_size: usize,
-}
+impl AppState {
+    pub fn active_tab(&self) -> Option<&Tab> {
+        self.tabs.active_tab()
+    }
 
-pub struct EditorStatus {
-    pub modified_flag: bool,
-    pub search_mode: bool,
-}
+    pub fn active_tab_mut(&mut self) -> Option<&mut Tab> {
+        self.tabs.active_tab_mut()
+    }
 
-pub struct EditorState {
-    pub settings: EditorSettings,
-    pub status: EditorStatus,
+    pub fn switch_tab(&mut self, index: usize) {
+        self.tabs.activate(index)
+    }
+
+    pub fn close_tab(&mut self, index: usize) {
+        self.tabs.close_tab(index)
+    }
+
+    pub fn open_file(&mut self, path: Option<PathBuf>) {
+        self.tabs.open_file(path)
+    }
+
+    pub fn save_current_file(&self) {
+        self.tabs.save_current_file()
+    }
 }
-pub struct Theme {}

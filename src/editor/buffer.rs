@@ -44,6 +44,40 @@ impl Buffer {
         self.redo_stack.clear();
     }
 
+    pub fn undo(&mut self) {
+        if let Some(op) = self.undo_stack.pop() {
+            self.text.replace_range(op.start..op.end, "");
+
+            self.text.insert_str(op.start, &op.old_text);
+
+            let reverse_op = EditOperation {
+                start: op.start,
+                end: op.start + op.old_text.len(),
+                old_text: op.new_text,
+                new_text: op.old_text,
+            };
+
+            self.redo_stack.push(reverse_op);
+        }
+    }
+
+    pub fn redo(&mut self) {
+        if let Some(op) = self.redo_stack.pop() {
+            self.text.replace_range(op.start..op.end, "");
+
+            self.text.insert_str(op.start, &op.new_text);
+
+            let reverse_op = EditOperation {
+                start: op.start,
+                end: op.start + op.new_text.len(),
+                old_text: op.old_text,
+                new_text: op.new_text.clone(),
+            };
+
+            self.undo_stack.push(reverse_op);
+        }
+    }
+
     pub fn get_line(&self, n: usize) -> Option<String> {
         self.text.lines().nth(n).map(|line| line.to_string())
     }
@@ -72,3 +106,4 @@ impl Buffer {
         self.text.lines().map(|l| l.to_string()).collect()
     }
 }
+

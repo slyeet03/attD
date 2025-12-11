@@ -1,4 +1,10 @@
+pub mod buffer;
+pub use buffer::Buffer;
+pub mod cursor;
 pub mod editor_component;
+pub mod layout;
+pub mod selection;
+pub mod undo_redo;
 pub use editor_component::EditorComponent;
 
 pub struct EditorSettings {

@@ -1,3 +1,4 @@
+use super::Tab;
 use std::path::PathBuf;
 
 pub struct TabManager {
@@ -34,7 +35,7 @@ impl TabManager {
     pub fn save_current_file(&mut self) {
         if let Some(tab) = self.active_tab_mut() {
             if let Some(path) = &tab.path {
-                tab.buffer.save_to_file(path);
+                //tab.buffer.save_to_file(path);
                 tab.dirty = false;
             }
         }

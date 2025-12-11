@@ -4,6 +4,7 @@ use gpui_component::{Root, *};
 
 pub mod app;
 pub mod editor;
+pub mod tabs;
 pub mod ui;
 use app::App;
 

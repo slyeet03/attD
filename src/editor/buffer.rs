@@ -14,6 +14,14 @@ pub struct EditOperation {
 }
 
 impl Buffer {
+    pub fn new() -> Buffer {
+        Buffer {
+            text: "hello\nworld".to_string(),
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
+        }
+    }
+
     pub fn insert(&mut self, pos: usize, ch: char) {
         let new_text = ch.to_string();
 

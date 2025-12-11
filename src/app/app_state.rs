@@ -1,3 +1,7 @@
+use crate::editor::EditorState;
+use crate::tabs::{Tab, TabManager};
+use std::path::PathBuf;
+
 pub struct AppState {
     pub tabs: TabManager,
     pub editor: EditorState,
@@ -21,10 +25,10 @@ impl AppState {
     }
 
     pub fn open_file(&mut self, path: Option<PathBuf>) {
-        self.tabs.open_file(path)
+        self.tabs.open_file(path.unwrap())
     }
 
-    pub fn save_current_file(&self) {
+    pub fn save_current_file(&mut self) {
         self.tabs.save_current_file()
     }
 }

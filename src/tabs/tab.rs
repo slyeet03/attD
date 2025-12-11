@@ -1,3 +1,4 @@
+use crate::editor::Buffer;
 use std::path::PathBuf;
 
 pub struct Tab {
@@ -24,7 +25,7 @@ impl Tab {
             id,
             name: path.file_name().unwrap().to_string_lossy().to_string(),
             path: Some(path),
-            buffer: Buffer::from_file(&path),
+            buffer: Buffer::new(), //replace this with a from file fn
             dirty: false,
         }
     }

@@ -20,12 +20,12 @@ impl Render for App {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         v_flex()
             .size_full()
-            .child(cx.new(|cx| TabBar::new(cx)))
+            //.child(cx.new(|cx| TabBar::new(cx)))
             .child(
                 h_flex()
                     .flex_grow()
                     .child(cx.new(|cx| EditorComponent::new(cx))),
             )
-            .child(cx.new(|cx| StatusBar::new(cx)))
+        //.child(cx.new(|cx| StatusBar::new(cx)))
     }
 }

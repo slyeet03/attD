@@ -1,13 +1,13 @@
 use super::cursor::Cursor;
 
 pub struct Selection {
-    anchor: Anchor,
-    cursor: Cursor,
+    pub anchor: Anchor,
+    pub cursor: Cursor,
 }
 
 pub struct Anchor {
-    row: usize,
-    col: usize,
+    pub row: usize,
+    pub col: usize,
 }
 
 impl Selection {
@@ -27,10 +27,10 @@ impl Selection {
     }
 
     pub fn range(&self) -> (usize, usize, usize, usize) {
-        let mut start_row: usize;
-        let mut start_col: usize;
-        let mut end_row: usize;
-        let mut end_col: usize;
+        let start_row: usize;
+        let start_col: usize;
+        let end_row: usize;
+        let end_col: usize;
 
         if self.anchor.row < self.cursor.row {
             start_row = self.anchor.row;

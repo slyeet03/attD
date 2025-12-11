@@ -75,4 +75,36 @@ impl Cursor {
             .unwrap_or(0);
         self.col = line_len;
     }
+
+    pub fn to_offset(&self, row: usize, col: usize, buffer: &Buffer) -> usize {
+        let mut current_row = 0;
+        let mut offset = 0;
+
+        for line in buffer.text.split_inclusive('\n') {
+            if current_row == row {
+                return offset + col.min(line.trim_end_matches('\n').len());
+            }
+            offset += line.len();
+            current_row += 1;
+        }
+
+        offset
+    }
+
+    pub fn from_offset(&self, offset: usize, buffer: &Buffer) -> (usize, usize) {
+        let mut remaining = offset;
+        let mut row = 0;
+
+        for line in buffer.text.split_inclusive('\n') {
+            if remaining <= line.len() {
+                let clean = line.trim_end_matches('\n');
+                return (row, remaining.min(clean.len()));
+            }
+
+            remaining -= line.len();
+            row += 1;
+        }
+
+        (row, 0)
+    }
 }

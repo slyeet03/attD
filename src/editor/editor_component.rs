@@ -1,29 +1,34 @@
-use super::Key;
 use super::buffer::Buffer;
 use super::cursor::Cursor;
-use super::selection::Selection;
-use crate::editor::selection::Anchor;
-use gpui::AbsoluteLength;
-
+use super::input;
+use super::selection::{Anchor, Selection};
 use gpui::*;
 use gpui_component::text::Text;
-use gpui_component::text::TextViewStyle;
 use gpui_component::*;
 
 pub struct EditorComponent {
-    cursor: Cursor,
-    selection: Selection,
-    scroll_offset: ScrollOffset,
-    buffer: Buffer,
+    pub cursor: Cursor,
+    pub selection: Selection,
+    pub scroll_offset: ScrollOffset,
+    pub buffer: Buffer,
+    pub char_width: f32,
+    pub line_height: f32,
+    pub is_dragging: bool,
+    focus_handle: FocusHandle,
 }
 
 pub struct ScrollOffset {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
 }
 
 impl EditorComponent {
-    pub fn new(_cx: &mut Context<Self>) -> Self {
+    pub fn new(cx: &mut Context<Self>) -> Self {
+        println!("EditorComponent::new() called!");
+        
+        let mut buffer = Buffer::new();
+        buffer.insert_str(0, "");
+        
         Self {
             cursor: Cursor { row: 0, col: 0 },
             selection: Selection {
@@ -34,90 +39,32 @@ impl EditorComponent {
                 width: 0,
                 height: 0,
             },
-            buffer: Buffer::new(),
+            buffer,
+            char_width: 8.0,
+            line_height: 20.0,
+            is_dragging: false,
+            focus_handle: cx.focus_handle(),
         }
     }
+}
 
-    pub fn handle_keypress(&mut self, key: Key, buffer: &mut Buffer) {
-        // todo: add more keys
-        match key {
-            Key::Up => {
-                self.cursor.move_up(buffer);
-                self.selection.clear();
-            }
-            Key::Left => {
-                self.cursor.move_left(buffer);
-                self.selection.clear();
-            }
-            Key::Down => {
-                self.cursor.move_down(buffer);
-                self.selection.clear();
-            }
-            Key::Right => {
-                self.cursor.move_right(buffer);
-                self.selection.clear();
-            }
-            Key::Char(c) => {
-                // todo: make it so when a selection is there that selection gets deleted and gets
-                // replaced by the text
-                let offset = self
-                    .cursor
-                    .to_offset(self.cursor.row, self.cursor.col, buffer);
-                self.buffer.insert(offset, c);
-            }
-            // todo: selection leke bhi delete krna hain multiple lines for backspace and delete
-            Key::Backspace => {
-                let offset = self
-                    .cursor
-                    .to_offset(self.cursor.row, self.cursor.col, buffer);
-                self.cursor.col -= 1;
-                self.buffer.delete_range(offset - 1, offset);
-            }
-            Key::Delete => {
-                let offset = self
-                    .cursor
-                    .to_offset(self.cursor.row, self.cursor.col, buffer);
-                self.buffer.delete_range(offset, offset + 1);
-            }
-
-            _ => {}
-        }
-    }
-    pub fn handle_mouse_click(&mut self, mut row: usize, mut col: usize) {
-        row = row.min(self.buffer.line_count() - 1);
-        col = col.min(
-            self.buffer
-                .get_line(row)
-                .map(|line| line.len())
-                .unwrap_or(0),
-        );
-
-        self.cursor.row = row;
-        self.cursor.col = col;
-        self.selection.clear();
-    }
-    pub fn handle_mouse_drag(&mut self, mut row: usize, mut col: usize) {
-        row = row.min(self.buffer.line_count() - 1);
-        col = col.min(
-            self.buffer
-                .get_line(row)
-                .map(|line| line.len())
-                .unwrap_or(0),
-        );
-        self.selection.expand_to(row, col);
+impl Focusable for EditorComponent {
+    fn focus_handle(&self, _cx: &gpui::App) -> FocusHandle {
+        self.focus_handle.clone()
     }
 }
 
 impl Render for EditorComponent {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        println!("EditorComponent::render() called!");
+        
+        // Focus the editor immediately on first render
+        window.focus(&self.focus_handle);
+        println!("Focus set on render!");
+        
         let lines = self.buffer.as_lines();
         let (sr, sc, er, ec) = self.selection.range();
 
-        // Character size in pixels
-        let char_width = 8.0;
-        let line_height = 16.0;
-
-        // Render all lines with selection highlight
         let text_lines: Vec<_> = lines
             .iter()
             .enumerate()
@@ -131,34 +78,255 @@ impl Render for EditorComponent {
                     let after = &line[end.min(line.len())..];
 
                     div()
+                        .h(px(self.line_height))
+                        .flex()
                         .flex_row()
+                        .items_center()
                         .child(Text::from(before))
                         .child(
-                            div() // Highlighted part
+                            div()
+                                .bg(rgb(0x4a9eff))
                                 .child(Text::from(mid))
-                                .bg(rgb(0x99bbff)),
                         )
                         .child(Text::from(after))
                 } else {
-                    div().flex_row().child(Text::from(line.clone()))
+                    div()
+                        .h(px(self.line_height))
+                        .flex()
+                        .flex_row()
+                        .items_center()
+                        .child(Text::from(line.clone()))
                 }
             })
             .collect();
 
-        // Cursor position as absolute div
-        let cursor_div = div()
-            .absolute()
-            .left(AbsoluteLength::Pixels(
-                (self.cursor.col as f32 * char_width).into(),
-            ))
-            .top(AbsoluteLength::Pixels(
-                (self.cursor.row as f32 * line_height).into(),
-            ))
-            .w(AbsoluteLength::Pixels(2.0.into()))
-            .h(AbsoluteLength::Pixels(line_height.into()))
-            .bg(rgb(0x0000ff)); // bright blue cursor
+        let focus_handle = self.focus_handle.clone();
 
-        // Combine text lines and cursor
-        div().flex_col().children(text_lines).child(cursor_div)
+        div()
+            .flex()
+            .flex_col()
+            .size_full()
+            .bg(rgb(0x1e1e1e))
+            .text_color(rgb(0xffffff))
+            .font_family("monospace")
+            .text_size(px(14.0))
+            .p_2()
+            .track_focus(&focus_handle)
+            .on_key_down(cx.listener(|editor, event: &KeyDownEvent, _window, cx| {
+                println!("KEY DOWN EVENT FIRED!");
+                println!("KEY PRESSED: '{}' | Modifiers: ctrl={} alt={} shift={} platform={}", 
+                    event.keystroke.key, 
+                    event.keystroke.modifiers.control,
+                    event.keystroke.modifiers.alt,
+                    event.keystroke.modifiers.shift,
+                    event.keystroke.modifiers.platform
+                );
+                println!("BEFORE - Cursor: row={}, col={} | Buffer lines: {}", 
+                    editor.cursor.row, 
+                    editor.cursor.col,
+                    editor.buffer.line_count()
+                );
+                
+                match event.keystroke.key.as_str() {
+                    "up" => {
+                        println!("UP arrow pressed");
+                        editor.cursor.move_up(&editor.buffer);
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        } else {
+                            editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "down" => {
+                        println!("DOWN arrow pressed");
+                        editor.cursor.move_down(&editor.buffer);
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        } else {
+                            editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "left" => {
+                        println!("LEFT arrow pressed");
+                        editor.cursor.move_left(&editor.buffer);
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        } else {
+                            editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "right" => {
+                        println!("RIGHT arrow pressed");
+                        editor.cursor.move_right(&editor.buffer);
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        } else {
+                            editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "backspace" => {
+                        println!("BACKSPACE pressed");
+                        input::handle_backspace(editor);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "delete" => {
+                        println!("DELETE pressed");
+                        input::handle_delete(editor);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "enter" => {
+                        println!("ENTER pressed");
+                        input::handle_enter(editor);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "tab" => {
+                        println!("⭾ TAB pressed");
+                        input::handle_tab(editor);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "home" => {
+                        println!("HOME pressed");
+                        editor.cursor.move_to_line_start();
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "end" => {
+                        println!("END pressed");
+                        editor.cursor.move_to_end(&editor.buffer);
+                        if !event.keystroke.modifiers.shift {
+                            editor.selection.clear();
+                        }
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "z" if event.keystroke.modifiers.platform => {
+                        println!("UNDO");
+                        editor.buffer.undo();
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "y" if event.keystroke.modifiers.platform => {
+                        println!("REDO");
+                        editor.buffer.redo();
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    "a" if event.keystroke.modifiers.platform => {
+                        println!("SELECT ALL");
+                        editor.cursor.row = 0;
+                        editor.cursor.col = 0;
+                        editor.selection.anchor = Anchor { row: 0, col: 0 };
+                        let last_line = editor.buffer.line_count().saturating_sub(1);
+                        let last_col = editor.buffer.get_line(last_line).map(|l| l.len()).unwrap_or(0);
+                        editor.selection.expand_to(last_line, last_col);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        cx.notify();
+                        return;
+                    }
+                    _ => {}
+                }
+
+                if event.keystroke.key.len() == 1
+                    && !event.keystroke.modifiers.control
+                    && !event.keystroke.modifiers.alt
+                    && !event.keystroke.modifiers.platform
+                {
+                    if let Some(c) = event.keystroke.key.chars().next() {
+                        println!("CHAR INPUT: '{}' (code: {})", c, c as u32);
+                        input::insert_char(editor, c);
+                        println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+                        println!("Buffer content: {:?}", editor.buffer.as_lines());
+                        cx.notify();
+                    }
+                } else {
+                    println!("Key not handled: '{}'", event.keystroke.key);
+                }
+            }))
+            .on_mouse_down(
+                MouseButton::Left,
+                cx.listener(|editor, event: &MouseDownEvent, window, cx| {
+                    println!("MOUSE DOWN EVENT FIRED!");
+                    println!("MOUSE DOWN at x={}, y={}", event.position.x, event.position.y);
+                    window.focus(&editor.focus_handle);
+                    println!("Editor focused via mouse!");
+                    let (row, col) = input::pixel_to_position(
+                        editor,
+                        event.position.x.into(),
+                        event.position.y.into(),
+                    );
+                    println!("Clicked position: row={}, col={}", row, col);
+                    editor.cursor.row = row;
+                    editor.cursor.col = col;
+                    editor.selection.clear();
+                    editor.selection.anchor = Anchor { row, col };
+                    editor.is_dragging = true;
+                    cx.notify();
+                }),
+            )
+            .on_mouse_move(cx.listener(|editor, event: &MouseMoveEvent, _window, cx| {
+                if editor.is_dragging {
+                    println!("MOUSE DRAG at x={}, y={}", event.position.x, event.position.y);
+                    let (row, col) = input::pixel_to_position(
+                        editor,
+                        event.position.x.into(),
+                        event.position.y.into(),
+                    );
+                    editor.cursor.row = row;
+                    editor.cursor.col = col;
+                    editor.selection.expand_to(row, col);
+                    cx.notify();
+                }
+            }))
+            .on_mouse_up(
+                MouseButton::Left,
+                cx.listener(|editor, _event: &MouseUpEvent, _window, cx| {
+                    println!("MOUSE UP - drag ended");
+                    editor.is_dragging = false;
+                    cx.notify();
+                }),
+            )
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .relative()
+                    .children(text_lines)
+                    .child(
+                        div()
+                            .absolute()
+                            .left(px(self.cursor.col as f32 * self.char_width))
+                            .top(px(self.cursor.row as f32 * self.line_height))
+                            .w(px(2.0))
+                            .h(px(self.line_height))
+                            .bg(rgb(0xffffff))
+                    )
+            )
     }
 }

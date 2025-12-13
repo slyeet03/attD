@@ -11,6 +11,10 @@ pub struct Anchor {
 }
 
 impl Selection {
+    pub fn is_empty(&self) -> bool {
+        self.anchor.row == self.cursor.row && self.anchor.col == self.cursor.col
+    }
+
     pub fn clear(&mut self) {
         self.anchor.row = self.cursor.row;
         self.anchor.col = self.cursor.col;
@@ -33,6 +37,7 @@ impl Selection {
         let end_col: usize;
 
         if self.anchor.row < self.cursor.row {
+            // Anchor is above cursor
             start_row = self.anchor.row;
             start_col = self.anchor.col;
             end_row = self.cursor.row;
@@ -55,6 +60,8 @@ impl Selection {
                 start_col = self.cursor.col;
             }
         }
+
         (start_row, start_col, end_row, end_col)
     }
 }
+

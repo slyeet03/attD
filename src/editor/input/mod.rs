@@ -1,4 +1,6 @@
-use super::EditorComponent;
+pub mod keyboard;
+pub mod mouse;
+use crate::editor::editor_component::EditorComponent;
 
 pub fn pixel_to_position(editor_comp: &mut EditorComponent, x: f32, y: f32) -> (usize, usize) {
     let row = (y / editor_comp.line_height) as usize;
@@ -93,3 +95,4 @@ pub fn handle_tab(editor_comp: &mut EditorComponent) {
         insert_char(editor_comp, ' ');
     }
 }
+

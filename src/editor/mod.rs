@@ -1,12 +1,13 @@
 pub mod buffer;
-pub mod log;
-pub mod input;
-pub use buffer::Buffer;
 pub mod cursor;
 pub mod editor_component;
-pub mod layout;
+pub mod input;
+pub mod log;
 pub mod selection;
+pub use buffer::Buffer;
+pub use cursor::Cursor;
 pub use editor_component::EditorComponent;
+pub use selection::Selection;
 
 pub struct EditorSettings {
     pub font_size: usize,
@@ -15,9 +16,29 @@ pub struct EditorSettings {
     pub indent_size: usize,
 }
 
+impl Default for EditorSettings {
+    fn default() -> Self {
+        Self {
+            font_size: 14,
+            theme: Theme,
+            wrap: false,
+            indent_size: 4,
+        }
+    }
+}
+
 pub struct EditorStatus {
     pub modified_flag: bool,
     pub search_mode: bool,
+}
+
+impl Default for EditorStatus {
+    fn default() -> Self {
+        Self {
+            modified_flag: false,
+            search_mode: false,
+        }
+    }
 }
 
 pub struct EditorState {
@@ -25,6 +46,13 @@ pub struct EditorState {
     pub status: EditorStatus,
 }
 
-
+impl Default for EditorState {
+    fn default() -> Self {
+        Self {
+            settings: EditorSettings::default(),
+            status: EditorStatus::default(),
+        }
+    }
+}
 
 pub struct Theme;

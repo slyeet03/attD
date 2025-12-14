@@ -58,7 +58,6 @@ impl Render for EditorComponent {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         println!("EditorComponent::render() called!");
         
-        // Focus the editor immediately on first render
         window.focus(&self.focus_handle);
         println!("Focus set on render!");
         
@@ -113,135 +112,145 @@ impl Render for EditorComponent {
             .p_2()
             .track_focus(&focus_handle)
             .on_key_down(cx.listener(|editor, event: &KeyDownEvent, _window, cx| {
-                println!("KEY DOWN EVENT FIRED!");
-                println!("KEY PRESSED: '{}' | Modifiers: ctrl={} alt={} shift={} platform={}", 
-                    event.keystroke.key, 
-                    event.keystroke.modifiers.control,
-                    event.keystroke.modifiers.alt,
-                    event.keystroke.modifiers.shift,
-                    event.keystroke.modifiers.platform
-                );
-                println!("BEFORE - Cursor: row={}, col={} | Buffer lines: {}", 
-                    editor.cursor.row, 
-                    editor.cursor.col,
-                    editor.buffer.line_count()
-                );
-                
+                log::log_keystrokes(editor, event);
                 match event.keystroke.key.as_str() {
+                    // tspmo🥀
+                    // find a way to modularize this shit dont want this much shit in one fckin
+                    // match chain
                     "space" => {
-                        println!("SPACE pressed");
                         input::insert_char(editor, ' ');
+                        
                         cx.notify();
                         return;
 
                     }
                     "up" => {
-                        println!("UP arrow pressed");
                         editor.cursor.move_up(&editor.buffer);
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         } else {
                             editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "down" => {
-                        println!("DOWN arrow pressed");
                         editor.cursor.move_down(&editor.buffer);
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         } else {
                             editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "left" => {
-                        println!("LEFT arrow pressed");
                         editor.cursor.move_left(&editor.buffer);
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         } else {
                             editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "right" => {
-                        println!("RIGHT arrow pressed");
                         editor.cursor.move_right(&editor.buffer);
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         } else {
                             editor.selection.expand_to(editor.cursor.row, editor.cursor.col);
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "backspace" => {
-                        println!("BACKSPACE pressed");
                         input::handle_backspace(editor);
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "delete" => {
-                        println!("DELETE pressed");
                         input::handle_delete(editor);
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "enter" => {
-                        println!("ENTER pressed");
                         input::handle_enter(editor);
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "tab" => {
-                        println!("⭾ TAB pressed");
                         input::handle_tab(editor);
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "home" => {
-                        println!("HOME pressed");
                         editor.cursor.move_to_line_start();
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "end" => {
-                        println!("END pressed");
                         editor.cursor.move_to_end(&editor.buffer);
+
                         if !event.keystroke.modifiers.shift {
                             editor.selection.clear();
                         }
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "z" if event.keystroke.modifiers.platform => {
                         println!("UNDO");
                         editor.buffer.undo();
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
                     "y" if event.keystroke.modifiers.platform => {
                         println!("REDO");
                         editor.buffer.redo();
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
@@ -250,10 +259,14 @@ impl Render for EditorComponent {
                         editor.cursor.row = 0;
                         editor.cursor.col = 0;
                         editor.selection.anchor = Anchor { row: 0, col: 0 };
+
                         let last_line = editor.buffer.line_count().saturating_sub(1);
                         let last_col = editor.buffer.get_line(last_line).map(|l| l.len()).unwrap_or(0);
+
                         editor.selection.expand_to(last_line, last_col);
+
                         println!("AFTER  - Cursor: row={}, col={}", editor.cursor.row, editor.cursor.col);
+
                         cx.notify();
                         return;
                     }
@@ -281,14 +294,19 @@ impl Render for EditorComponent {
                 cx.listener(|editor, event: &MouseDownEvent, window, cx| {
                     println!("MOUSE DOWN EVENT FIRED!");
                     println!("MOUSE DOWN at x={}, y={}", event.position.x, event.position.y);
+
                     window.focus(&editor.focus_handle);
+
                     println!("Editor focused via mouse!");
+
                     let (row, col) = input::pixel_to_position(
                         editor,
                         event.position.x.into(),
                         event.position.y.into(),
                     );
+
                     println!("Clicked position: row={}, col={}", row, col);
+
                     editor.cursor.row = row;
                     editor.cursor.col = col;
                     editor.selection.clear();
@@ -300,11 +318,13 @@ impl Render for EditorComponent {
             .on_mouse_move(cx.listener(|editor, event: &MouseMoveEvent, _window, cx| {
                 if editor.is_dragging {
                     println!("MOUSE DRAG at x={}, y={}", event.position.x, event.position.y);
+
                     let (row, col) = input::pixel_to_position(
                         editor,
                         event.position.x.into(),
                         event.position.y.into(),
                     );
+
                     editor.cursor.row = row;
                     editor.cursor.col = col;
                     editor.selection.expand_to(row, col);

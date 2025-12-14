@@ -1,4 +1,5 @@
 pub mod buffer;
+pub mod log;
 pub mod input;
 pub use buffer::Buffer;
 pub mod cursor;
@@ -24,15 +25,6 @@ pub struct EditorState {
     pub status: EditorStatus,
 }
 
-enum Key {
-    Left,
-    Right,
-    Up,
-    Down,
-    Char(char),
-    Backspace,
-    Delete,
-    Enter,
-}
+
 
 pub struct Theme;

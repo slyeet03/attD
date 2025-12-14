@@ -16,7 +16,7 @@ pub struct EditOperation {
 impl Buffer {
     pub fn new() -> Buffer {
         Buffer {
-            text: "hello\nworld".to_string(),
+            text: "".to_string(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
         }
@@ -114,4 +114,3 @@ impl Buffer {
         self.text.lines().map(|l| l.to_string()).collect()
     }
 }
-

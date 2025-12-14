@@ -128,6 +128,13 @@ impl Render for EditorComponent {
                 );
                 
                 match event.keystroke.key.as_str() {
+                    "space" => {
+                        println!("SPACE pressed");
+                        input::insert_char(editor, ' ');
+                        cx.notify();
+                        return;
+
+                    }
                     "up" => {
                         println!("UP arrow pressed");
                         editor.cursor.move_up(&editor.buffer);

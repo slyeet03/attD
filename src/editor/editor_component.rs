@@ -28,10 +28,10 @@ pub struct ScrollOffset {
 impl EditorComponent {
     pub fn new(cx: &mut Context<Self>) -> Self {
         println!("EditorComponent::new() called!");
-        
+
         let mut buffer = Buffer::new();
         buffer.insert_str(0, "");
-        
+
         Self {
             cursor: Cursor { row: 0, col: 0 },
             selection: Selection {
@@ -108,10 +108,10 @@ impl Focusable for EditorComponent {
 impl Render for EditorComponent {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         println!("EditorComponent::render() called!");
-        
+
         window.focus(&self.focus_handle);
         println!("Focus set on render!");
-        
+
         let text_lines = self.render_text_lines();
         let cursor = self.render_cursor();
         let focus_handle = self.focus_handle.clone();
@@ -128,7 +128,7 @@ impl Render for EditorComponent {
             .track_focus(&focus_handle)
             .on_key_down(cx.listener(|editor, event: &KeyDownEvent, _window, cx| {
                 crate::editor::log::log_keystrokes(editor, event);
-                
+
                 if let Some(command) = editor.keyboard_handler.handle_key_event(editor, event) {
                     command.execute(editor);
                     println!("Buffer content: {:?}", editor.buffer.as_lines());
@@ -161,7 +161,7 @@ impl Render for EditorComponent {
                     .flex_col()
                     .relative()
                     .children(text_lines)
-                    .child(cursor)
+                    .child(cursor),
             )
     }
 }

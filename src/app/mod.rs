@@ -1,5 +1,6 @@
 use crate::editor::editor_component::EditorComponent;
 use crate::ui::{status_bar::StatusBar, tab_bar::TabBar};
+use app_state::AppState;
 use gpui::*;
 use gpui_component::*;
 
@@ -11,6 +12,7 @@ pub struct App {
     editor: Entity<EditorComponent>,
     tab_bar: Entity<TabBar>,
     status_bar: Entity<StatusBar>,
+    app_state: AppState,
 }
 
 impl App {
@@ -20,6 +22,7 @@ impl App {
             editor: cx.new(|cx| EditorComponent::new(cx)),
             tab_bar: cx.new(|cx| TabBar::new(cx)),
             status_bar: cx.new(|cx| StatusBar::new(cx)),
+            app_state: AppState::default(),
         }
     }
 }

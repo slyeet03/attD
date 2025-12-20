@@ -19,7 +19,7 @@ pub struct EditorSettings {
 impl Default for EditorSettings {
     fn default() -> Self {
         Self {
-            font_size: 14,
+            font_size: 16,
             theme: Theme,
             wrap: false,
             indent_size: 4,

@@ -1,4 +1,4 @@
-use crate::editor::editor_component::EditorComponent;
+use crate::editor::editor_component::{self, EditorComponent};
 use crate::ui::{status_bar::StatusBar, tab_bar::TabBar};
 use app_state::AppState;
 use gpui::*;
@@ -17,12 +17,20 @@ pub struct App {
 
 impl App {
     pub fn new(cx: &mut Context<Self>) -> Self {
-        println!("App::new() called!");
+        let editor = cx.new(|cx| EditorComponent::new(cx));
+        let tab_bar = cx.new(|cx| TabBar::new(cx));
+        let status_bar = cx.new(|cx| StatusBar::new(cx));
+        let mut app_state = AppState::default();
+
+        cx.update_entity(&editor, |editor_component, _cx| {
+            app_state.sync_current_tab_to_editor(editor_component);
+        });
+
         Self {
-            editor: cx.new(|cx| EditorComponent::new(cx)),
-            tab_bar: cx.new(|cx| TabBar::new(cx)),
-            status_bar: cx.new(|cx| StatusBar::new(cx)),
-            app_state: AppState::default(),
+            editor,
+            tab_bar,
+            status_bar,
+            app_state,
         }
     }
 }

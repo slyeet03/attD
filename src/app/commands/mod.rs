@@ -16,4 +16,3 @@ pub use delete::{DeleteBackwardCommand, DeleteForwardCommand};
 pub use selection::SelectAllCommand;
 pub use text_input::{InsertCharCommand, InsertNewlineCommand, InsertTabCommand};
 pub use undoredo::{RedoCommand, UndoCommand};
-

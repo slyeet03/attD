@@ -1,9 +1,11 @@
 use crate::editor::editor_component::{self, EditorComponent};
 use crate::ui::{status_bar::StatusBar, tab_bar::TabBar};
+use app_keyboard_handler::AppKeyBoardHandler;
 use app_state::AppState;
 use gpui::*;
 use gpui_component::*;
 
+pub mod app_keyboard_handler;
 pub mod app_state;
 pub mod commands;
 pub mod shortcuts;
@@ -41,6 +43,18 @@ impl Render for App {
 
         v_flex()
             .size_full()
+            .on_key_down(cx.listener(|app, event: &KeyDownEvent, window, cx| {
+                let handled = AppKeyBoardHandler::handle_key_event(
+                    &mut app.app_state,
+                    &mut app.editor,
+                    event,
+                    cx,
+                );
+
+                if handled {
+                    cx.notify();
+                }
+            }))
             .child(div().h(relative(0.10)).w_full().child(self.tab_bar.clone()))
             .child(
                 div()

@@ -60,4 +60,20 @@ impl AppState {
         self.tabs.activate(index);
         self.sync_current_tab_to_editor(editor_component);
     }
+
+    pub fn create_new_tab(&mut self, editor_component: &mut EditorComponent) {
+        self.sync_editor_to_current_tab(editor_component);
+        let next_id = self.tabs.tabs.iter().map(|t| t.id).max().unwrap_or(0) + 1;
+        let new_tab = Tab::new_empty(next_id);
+        self.tabs.add_tab(new_tab);
+        self.sync_current_tab_to_editor(editor_component);
+    }
+
+    pub fn switch_to_tab(&mut self, index: usize, editor_component: &mut EditorComponent) {
+        if index < self.tabs.tabs.len() && index != self.tabs.active {
+            self.sync_editor_to_current_tab(editor_component);
+            self.tabs.activate(index);
+            self.sync_current_tab_to_editor(editor_component);
+        }
+    }
 }

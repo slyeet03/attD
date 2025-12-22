@@ -76,4 +76,37 @@ impl AppState {
             self.sync_current_tab_to_editor(editor_component);
         }
     }
+
+    pub fn next_tab(&mut self, editor_component: &mut EditorComponent) {
+        if self.tabs.tabs.is_empty() {
+            return;
+        }
+
+        let next_index = (self.tabs.active + 1) % self.tabs.tabs.len();
+        self.switch_to_tab(next_index, editor_component);
+    }
+
+    pub fn previous_tab(&mut self, editor_component: &mut EditorComponent) {
+        if self.tabs.tabs.is_empty() {
+            return;
+        }
+
+        let prev_index = if self.tabs.active == 0 {
+            self.tabs.tabs.len() - 1
+        } else {
+            self.tabs.active - 1
+        };
+        self.switch_to_tab(prev_index, editor_component);
+    }
+
+    pub fn close_current_tab(&mut self, editor_component: &mut EditorComponent) {
+        let current_index = self.tabs.active;
+
+        if self.tabs.tabs.len() <= 1 {
+            return;
+        }
+
+        self.tabs.close_tab(current_index);
+        self.sync_current_tab_to_editor(editor_component);
+    }
 }

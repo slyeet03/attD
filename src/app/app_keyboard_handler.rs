@@ -26,19 +26,19 @@ impl AppKeyBoardHandler {
                 }
                 "w" => {
                     cx.update_entity(editor, |editor_comp, _| {
-                        app_state.tabs.close_tab(app_state.tabs.active);
+                        app_state.close_current_tab(editor_comp);
                     });
                     return true;
                 }
                 "tab" if modifiers.shift => {
                     cx.update_entity(editor, |editor_comp, _| {
-                        app_state.tabs.prev_tab();
+                        app_state.previous_tab(editor_comp);
                     });
                     return true;
                 }
                 "tab" => {
                     cx.update_entity(editor, |editor_comp, _| {
-                        app_state.tabs.next_tab();
+                        app_state.next_tab(editor_comp);
                     });
                     return true;
                 }

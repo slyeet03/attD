@@ -1,6 +1,5 @@
 use crate::editor::{EditorComponent, EditorState, editor_component};
 use crate::tabs::{Tab, TabManager};
-use std::path::PathBuf;
 
 pub struct AppState {
     pub tabs: TabManager,
@@ -50,6 +49,15 @@ impl AppState {
             editor_component.selection.anchor.col = editor_state.4;
             editor_component.scroll_offset.width = editor_state.5;
             editor_component.scroll_offset.height = editor_state.6;
+            // no previous tab shit gets to the current tab
+            editor_component.buffer.undo_stack.clear();
+            editor_component.buffer.redo_stack.clear();
         }
+    }
+
+    pub fn switch_to_tab_and_sync(&mut self, index: usize, editor_component: &mut EditorComponent) {
+        self.sync_editor_to_current_tab(editor_component);
+        self.tabs.activate(index);
+        self.sync_current_tab_to_editor(editor_component);
     }
 }

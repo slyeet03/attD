@@ -116,7 +116,8 @@ impl AppState {
         self.tabs.save_current_file()
     }
 
-    pub fn open_file(&mut self, path: PathBuf) {
+    pub fn open_file(&mut self, path: PathBuf, editor_component: &mut EditorComponent) {
         self.tabs.open_file(path);
+        self.sync_current_tab_to_editor(editor_component)
     }
 }

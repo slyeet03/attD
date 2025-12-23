@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 use gpui::{AppContext, Context, Entity, KeyDownEvent};
 
-use crate::editor::{EditorComponent, editor_component};
+use crate::editor::{self, EditorComponent, editor_component};
 
 use super::app_state::{self, AppState};
 
@@ -28,6 +30,24 @@ impl AppKeyBoardHandler {
                     cx.update_entity(editor, |editor_comp, _| {
                         app_state.close_current_tab(editor_comp);
                     });
+                    return true;
+                }
+                "o" => {
+                    // simulating a file opening right now
+                    // TODO: open file dialog
+                    println!("inside the o match case");
+                    let path = PathBuf::from("test.txt");
+                    cx.update_entity(editor, |editor_comp, _| {
+                        app_state.open_file(path, editor_comp);
+                    });
+                    return true;
+                }
+                "s" => {
+                    println!("saving file");
+                    match app_state.save_current_file() {
+                        Ok(_) => println!("File saved successfully!"),
+                        Err(e) => println!("Failed to save: {}", e),
+                    }
                     return true;
                 }
                 "tab" if modifiers.shift => {

@@ -1,4 +1,5 @@
 use crate::editor::{Buffer, Cursor, Selection, editor_component::ScrollOffset, selection::Anchor};
+use std::io;
 use std::path::PathBuf;
 
 pub struct Tab {
@@ -32,12 +33,15 @@ impl Tab {
         }
     }
 
-    pub fn new_from_file(id: usize, path: PathBuf) -> Self {
-        Self {
+    pub fn new_from_file(id: usize, path: PathBuf) -> Result<Self, io::Error> {
+        let mut buffer = Buffer::new();
+        buffer.load_text_from_file(path.to_str().unwrap())?;
+
+        Ok(Self {
             id,
             name: path.file_name().unwrap().to_string_lossy().to_string(),
             path: Some(path),
-            buffer: Buffer::new(), //replace this with a from file fn
+            buffer,
             dirty: false,
             cursor: Cursor { row: 0, col: 0 },
             selection: Selection {
@@ -48,7 +52,7 @@ impl Tab {
                 width: 0,
                 height: 0,
             },
-        }
+        })
     }
 
     pub fn set_dirty(&mut self, flag: bool) {

@@ -1,4 +1,5 @@
 use super::Tab;
+use std::io;
 use std::path::PathBuf;
 
 pub struct TabManager {
@@ -13,8 +14,12 @@ impl TabManager {
     }
 
     pub fn open_file(&mut self, path: PathBuf) {
-        let tab = Tab::new_from_file(self.tabs.len(), path);
-        self.add_tab(tab);
+        match Tab::new_from_file(self.tabs.len(), path) {
+            Ok(tab) => self.add_tab(tab),
+            Err(e) => {
+                println!("Failed to open file: {}", e);
+            }
+        }
     }
 
     pub fn close_tab(&mut self, index: usize) {
@@ -32,12 +37,20 @@ impl TabManager {
         }
     }
 
-    pub fn save_current_file(&mut self) {
+    pub fn save_current_file(&mut self) -> io::Result<()> {
         if let Some(tab) = self.active_tab_mut() {
             if let Some(path) = &tab.path {
-                //tab.buffer.save_to_file(path);
+                tab.buffer.save_text_to_file(path.to_str().unwrap())?;
                 tab.dirty = false;
+                Ok(())
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "No file path - use Save As",
+                ))
             }
+        } else {
+            Err(io::Error::new(io::ErrorKind::Other, "No active tab"))
         }
     }
 

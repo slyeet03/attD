@@ -1,3 +1,6 @@
+use std::fs::read_to_string;
+use std::fs::{self, write};
+use std::io;
 use std::ops::Range;
 
 pub struct Buffer {
@@ -20,6 +23,23 @@ impl Buffer {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
         }
+    }
+
+    pub fn load_text_from_file(&mut self, path: &str) -> io::Result<()> {
+        let contents = read_to_string(path)?;
+        self.text = contents;
+        self.undo_stack.clear();
+        self.redo_stack.clear();
+
+        Ok(())
+    }
+
+    pub fn save_text_to_file(&mut self, path: &str) -> io::Result<()> {
+        let contents = self.text.as_str();
+
+        write(path, contents)?;
+
+        Ok(())
     }
 
     pub fn insert(&mut self, pos: usize, ch: char) {

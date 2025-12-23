@@ -1,5 +1,7 @@
 use crate::editor::{EditorComponent, EditorState, editor_component};
 use crate::tabs::{Tab, TabManager};
+use std::io;
+use std::path::PathBuf;
 
 pub struct AppState {
     pub tabs: TabManager,
@@ -108,5 +110,13 @@ impl AppState {
 
         self.tabs.close_tab(current_index);
         self.sync_current_tab_to_editor(editor_component);
+    }
+
+    pub fn save_current_file(&mut self) -> io::Result<()> {
+        self.tabs.save_current_file()
+    }
+
+    pub fn open_file(&mut self, path: PathBuf) {
+        self.tabs.open_file(path);
     }
 }

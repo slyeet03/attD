@@ -49,6 +49,7 @@ impl AppKeyBoardHandler {
                     });
                     return true;
                 }
+
                 _ => {}
             }
         }

@@ -34,3 +34,6 @@ dist-ssr
 # already existing elements were commented out
 
 #/target
+
+test.txt
+.vscode/

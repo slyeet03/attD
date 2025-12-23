@@ -43,9 +43,15 @@ impl AppKeyBoardHandler {
                     return true;
                 }
                 "s" => {
-                    println!("saving file");
+                    cx.update_entity(editor, |editor_comp, _| {
+                        app_state.sync_editor_to_current_tab(editor_comp);
+                    });
+
                     match app_state.save_current_file() {
-                        Ok(_) => println!("File saved successfully!"),
+                        Ok(_) => {
+                            println!("File saved successfully!");
+                            cx.notify();
+                        }
                         Err(e) => println!("Failed to save: {}", e),
                     }
                     return true;

@@ -1,4 +1,5 @@
 use crate::editor::editor_component::{self, EditorComponent};
+use crate::ui::tab_bar::{self, TabInfo};
 use crate::ui::{status_bar::StatusBar, tab_bar::TabBar};
 use app_keyboard_handler::AppKeyBoardHandler;
 use app_state::AppState;
@@ -39,7 +40,22 @@ impl App {
 
 impl Render for App {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        println!("App::render() called!");
+        let tab_info: Vec<TabInfo> = self
+            .app_state
+            .tabs
+            .tabs
+            .iter()
+            .enumerate()
+            .map(|(i, tab)| TabInfo {
+                name: tab.display_name().to_string(),
+                is_active: i == self.app_state.tabs.active,
+                is_dirty: tab.dirty,
+            })
+            .collect();
+
+        cx.update_entity(&self.tab_bar, |tab_bar, _| {
+            tab_bar.update_tabs(tab_info);
+        });
 
         v_flex()
             .size_full()
@@ -55,10 +71,10 @@ impl Render for App {
                     cx.notify();
                 }
             }))
-            .child(div().h(relative(0.10)).w_full().child(self.tab_bar.clone()))
+            .child(div().h(relative(0.05)).w_full().child(self.tab_bar.clone()))
             .child(
                 div()
-                    .h(relative(0.85))
+                    .h(relative(0.90))
                     .w_full()
                     .child(h_flex().size_full().child(self.editor.clone())),
             )

@@ -1,5 +1,5 @@
 use crate::editor::editor_component::{self, EditorComponent};
-use crate::ui::tab_bar::{self, TabInfo};
+use crate::ui::tab_bar::{self, TabClickedEvent, TabInfo};
 use crate::ui::{status_bar::StatusBar, tab_bar::TabBar};
 use app_keyboard_handler::AppKeyBoardHandler;
 use app_state::AppState;
@@ -24,6 +24,15 @@ impl App {
         let tab_bar = cx.new(|cx| TabBar::new(cx));
         let status_bar = cx.new(|cx| StatusBar::new(cx));
         let mut app_state = AppState::default();
+
+        cx.subscribe(&tab_bar, |app, _tab_bar, event: &TabClickedEvent, cx| {
+            println!("Tab clicked: {}", event.tab_index);
+            cx.update_entity(&app.editor, |editor_comp, _| {
+                app.app_state.switch_to_tab(event.tab_index, editor_comp);
+            });
+            cx.notify();
+        })
+        .detach();
 
         cx.update_entity(&editor, |editor_component, _cx| {
             app_state.sync_current_tab_to_editor(editor_component);

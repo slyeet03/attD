@@ -43,7 +43,7 @@ impl EditorComponent {
                 height: 0,
             },
             buffer,
-            char_width: 8.0,
+            char_width: 8.4,
             line_height: 20.0,
             is_dragging: false,
             focus_handle: cx.focus_handle(),
@@ -89,9 +89,11 @@ impl EditorComponent {
     }
 
     fn render_cursor(&self) -> impl IntoElement {
+        let x_position = self.cursor.col as f32 * self.char_width;
+
         div()
             .absolute()
-            .left(px(self.cursor.col as f32 * self.char_width))
+            .left(px(x_position))
             .top(px(self.cursor.row as f32 * self.line_height))
             .w(px(2.0))
             .h(px(self.line_height))
@@ -165,3 +167,4 @@ impl Render for EditorComponent {
             )
     }
 }
+

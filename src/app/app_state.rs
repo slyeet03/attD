@@ -36,7 +36,7 @@ impl AppState {
                 editor_component.selection.anchor.col,
                 editor_component.scroll_offset.width,
                 editor_component.scroll_offset.height,
-                true,
+                editor_component.dirty_flag,
             );
         }
     }
@@ -51,6 +51,7 @@ impl AppState {
             editor_component.selection.anchor.col = editor_state.4;
             editor_component.scroll_offset.width = editor_state.5;
             editor_component.scroll_offset.height = editor_state.6;
+            editor_component.dirty_flag = editor_state.7;
             // no previous tab shit gets to the current tab
             editor_component.buffer.undo_stack.clear();
             editor_component.buffer.redo_stack.clear();

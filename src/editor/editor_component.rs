@@ -18,6 +18,7 @@ pub struct EditorComponent {
     pub focus_handle: FocusHandle,
     pub keyboard_handler: KeyboardHandler,
     pub mouse_handler: MouseHandler,
+    pub dirty_flag: bool,
 }
 
 pub struct ScrollOffset {
@@ -49,6 +50,7 @@ impl EditorComponent {
             focus_handle: cx.focus_handle(),
             keyboard_handler: KeyboardHandler::new(),
             mouse_handler: MouseHandler::new(),
+            dirty_flag: false,
         }
     }
 
@@ -167,4 +169,3 @@ impl Render for EditorComponent {
             )
     }
 }
-

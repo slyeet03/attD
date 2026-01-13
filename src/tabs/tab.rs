@@ -86,7 +86,7 @@ impl Tab {
         self.buffer.undo_stack.clear();
         self.buffer.redo_stack.clear();
     }
-    pub fn get_editor_state(&self) -> (String, usize, usize, usize, usize, usize, usize) {
+    pub fn get_editor_state(&self) -> (String, usize, usize, usize, usize, usize, usize, bool) {
         (
             self.buffer.text.clone(),
             self.cursor.row,
@@ -95,6 +95,7 @@ impl Tab {
             self.selection.anchor.col,
             self.scroll_offset.width,
             self.scroll_offset.height,
+            self.dirty,
         )
     }
 }

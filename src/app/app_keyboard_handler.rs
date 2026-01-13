@@ -1,10 +1,7 @@
-use std::path::PathBuf;
-
-use gpui::{AppContext, Context, Entity, KeyDownEvent};
-
-use crate::editor::{self, EditorComponent, editor_component};
-
 use super::app_state::{self, AppState};
+use crate::editor::{self, EditorComponent, editor_component};
+use gpui::{AppContext, Context, Entity, KeyDownEvent};
+use std::path::PathBuf;
 
 pub struct AppKeyBoardHandler;
 
@@ -45,6 +42,7 @@ impl AppKeyBoardHandler {
                 "s" => {
                     cx.update_entity(editor, |editor_comp, _| {
                         app_state.sync_editor_to_current_tab(editor_comp);
+                        editor_comp.dirty_flag = false;
                     });
 
                     match app_state.save_current_file() {

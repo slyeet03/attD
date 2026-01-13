@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-
-use gpui::{AppContext, Context, Entity, KeyDownEvent};
-
-use crate::editor::{self, EditorComponent, editor_component};
-
 use super::app_state::{self, AppState};
+use crate::editor::{self, EditorComponent, editor_component};
+use gpui::{AppContext, Context, Entity, KeyDownEvent};
+use rfd::FileDialog;
+use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
 
 pub struct AppKeyBoardHandler;
 
@@ -33,18 +33,22 @@ impl AppKeyBoardHandler {
                     return true;
                 }
                 "o" => {
-                    // simulating a file opening right now
-                    // TODO: open file dialog
-                    println!("inside the o match case");
-                    let path = PathBuf::from("test.txt");
-                    cx.update_entity(editor, |editor_comp, _| {
-                        app_state.open_file(path, editor_comp);
-                    });
+                    let path = FileDialog::new()
+                        .set_title("Select a file to open")
+                        .pick_file();
+
+                    if let Some(file_path) = path {
+                        cx.update_entity(editor, |editor_comp, _| {
+                            app_state.open_file(file_path, editor_comp);
+                        });
+                    }
+
                     return true;
                 }
                 "s" => {
                     cx.update_entity(editor, |editor_comp, _| {
                         app_state.sync_editor_to_current_tab(editor_comp);
+                        editor_comp.dirty_flag = false;
                     });
 
                     match app_state.save_current_file() {

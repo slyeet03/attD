@@ -19,6 +19,8 @@ pub fn pixel_to_position(editor_comp: &mut EditorComponent, x: f32, y: f32) -> (
 }
 
 pub fn insert_char(editor_comp: &mut EditorComponent, c: char) {
+    editor_comp.dirty_flag = true;
+
     if !editor_comp.selection.is_empty() {
         delete_selection(editor_comp);
     }
@@ -33,6 +35,8 @@ pub fn insert_char(editor_comp: &mut EditorComponent, c: char) {
 }
 
 pub fn delete_selection(editor_comp: &mut EditorComponent) {
+    editor_comp.dirty_flag = true;
+
     let (sr, sc, er, ec) = editor_comp.selection.range();
     let start_offset = editor_comp.cursor.to_offset(sr, sc, &editor_comp.buffer);
     let end_offset = editor_comp.cursor.to_offset(er, ec, &editor_comp.buffer);
@@ -44,6 +48,8 @@ pub fn delete_selection(editor_comp: &mut EditorComponent) {
 }
 
 pub fn handle_backspace(editor_comp: &mut EditorComponent) {
+    editor_comp.dirty_flag = true;
+
     if !editor_comp.selection.is_empty() {
         delete_selection(editor_comp);
     } else if editor_comp.cursor.col > 0 || editor_comp.cursor.row > 0 {
@@ -60,6 +66,8 @@ pub fn handle_backspace(editor_comp: &mut EditorComponent) {
 }
 
 pub fn handle_delete(editor_comp: &mut EditorComponent) {
+    editor_comp.dirty_flag = true;
+
     if !editor_comp.selection.is_empty() {
         delete_selection(editor_comp);
     } else {
@@ -76,6 +84,8 @@ pub fn handle_delete(editor_comp: &mut EditorComponent) {
 }
 
 pub fn handle_enter(editor_comp: &mut EditorComponent) {
+    editor_comp.dirty_flag = true;
+
     if !editor_comp.selection.is_empty() {
         delete_selection(editor_comp);
     }
@@ -95,4 +105,3 @@ pub fn handle_tab(editor_comp: &mut EditorComponent) {
         insert_char(editor_comp, ' ');
     }
 }
-
